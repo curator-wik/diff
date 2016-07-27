@@ -1,0 +1,4 @@
+I'll create a Makefile eventually.
+
+For now, to compile this, run this command:
+gcc -Wall -lgit2 -g -o main main.c

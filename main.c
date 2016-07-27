@@ -21,6 +21,9 @@ int main(int argc, char **argv)
 	int error = git_repository_open(&repo, ".");
 	exit_on_error(error);
 
+	char oid_str[1024] = {0};
+
+
 	git_revwalk *walker;
 	error = git_revwalk_new(&walker, repo);
 	exit_on_error(error);
@@ -28,8 +31,9 @@ int main(int argc, char **argv)
 	while(!git_revwalk_next(&oid, walker)) {
 		error = git_commit_lookup(&commit, repo, &oid);
 		exit_on_error(error);
+		git_oid_tostr((char *)&oid_str, sizeof(oid_str), &oid);
 		const char *msg = git_commit_message(commit);
-		printf("%s\n", msg);
+		printf("oid: %s | message: %s\n", oid_str, msg);
 	}
 
 	return 0;

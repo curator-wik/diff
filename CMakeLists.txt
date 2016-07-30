@@ -5,6 +5,8 @@ set (CMAKE_BUILD_TYPE Debug)
 set (php_git_VERSION_MAJOR 0)
 set (php_git_VERSION_MINOR 1)
 
+set (CMAKE_C_FLAGS -fPIC)
+
 find_package(PkgConfig)
 
 pkg_check_modules(

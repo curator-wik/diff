@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <git2.h>
+#include <dmp.h>
 
 #define exit_on_error(x) _exit_on_error(x, __FUNCTION__, __LINE__)
 

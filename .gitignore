@@ -1,1 +1,11 @@
 main
+tags
+CMakeCache.txt
+CMakeFiles/
+*.swp
+.*.swp
+Makefile
+bin/
+cmake_install.cmake
+depends/
+*-build-prefix

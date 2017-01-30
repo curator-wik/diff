@@ -13,6 +13,38 @@ void _exit_on_error(int error, const char *func, const int line)
 	exit(error);
 }
 
+int diff_output(const git_diff_delta *d, const git_diff_hunk *h,
+    const git_diff_line *l, void *p)
+{
+	FILE *fp = (FILE*)p;
+
+	(void)d; (void)h;
+
+	if (!fp)
+		fp = stdout;
+
+
+	char buf[1024] = {0};
+	char oid_str[1024] = {0};
+	if(l->origin == GIT_DIFF_LINE_CONTEXT) {
+		git_oid_tostr((char *)&oid_str, sizeof(oid_str), &d->old_file.id);
+	} else {
+		git_oid_tostr((char *)&oid_str, sizeof(oid_str), &d->new_file.id);
+	}
+	memcpy(&buf, l->content, l->content_len);
+	char c = ' ';
+	if (l->origin == GIT_DIFF_LINE_CONTEXT ||
+	    l->origin == GIT_DIFF_LINE_ADDITION ||
+	    l->origin == GIT_DIFF_LINE_DELETION)
+		c = l->origin;
+
+	//fprintf(fp, "%s: %c%s", oid_str, c, buf);
+	fprintf(fp, "%c%s", c, buf);
+	//fwrite(l->content, 1, l->content_len, fp);
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	git_libgit2_init();
@@ -40,6 +72,12 @@ int main(int argc, char **argv)
 		const char *msg = git_commit_message(commit);
 		printf("oid: %s | message: %s\n", oid_str, msg);
 	}
+
+	git_diff *diff = NULL;
+	error = git_diff_index_to_workdir(&diff, repo, NULL, NULL);
+	exit_on_error(error);
+
+	git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, diff_output, NULL);
 
 	return 0;
 }

@@ -64,7 +64,7 @@ int main(int argc, char **argv)
 	error = git_diff_index_to_workdir(&diff, repo, NULL, NULL);
 	exit_on_error(error);
 
-	error = git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, _diff_stuff, NULL);
+	error = git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, diff_output, NULL);
 	exit_on_error(error);
 #if 0
 	error = git_revwalk_new(&walker, repo);
@@ -82,11 +82,6 @@ int main(int argc, char **argv)
 	}
 #endif
 
-	git_diff *diff = NULL;
-	error = git_diff_index_to_workdir(&diff, repo, NULL, NULL);
-	exit_on_error(error);
-
-	git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, diff_output, NULL);
 
 	return 0;
 }

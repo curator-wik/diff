@@ -23,7 +23,6 @@ int diff_output(const git_diff_delta *d, const git_diff_hunk *h,
 	if (!fp)
 		fp = stdout;
 
-
 	char buf[1024] = {0};
 	char oid_str[1024] = {0};
 	if(l->origin == GIT_DIFF_LINE_CONTEXT) {

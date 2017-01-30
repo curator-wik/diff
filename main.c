@@ -1,10 +1,12 @@
 #include <stdio.h>
+#include <string.h>
 #include <git2.h>
 #include <dmp.h>
 
 #define exit_on_error(x) _exit_on_error(x, __FUNCTION__, __LINE__)
+#define ONE_TIME fprintf(stdout, "%s-%d\n", __FUNCTION__, __LINE__); fflush(stdout);
 
-void _exit_on_error(int error, const char *func, const int line)
+static void _exit_on_error(int error, const char *func, const int line)
 {
 	if(!error)
 		return;
@@ -52,12 +54,19 @@ int main(int argc, char **argv)
 	git_repository *repo = NULL;
 	git_commit *commit = NULL;
 	git_revwalk *walker;
+	git_diff *diff;
 	char oid_str[1024] = {0};
 	int error;
 
 	error = git_repository_open(&repo, ".");
 	exit_on_error(error);
 
+	error = git_diff_index_to_workdir(&diff, repo, NULL, NULL);
+	exit_on_error(error);
+
+	error = git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, _diff_stuff, NULL);
+	exit_on_error(error);
+#if 0
 	error = git_revwalk_new(&walker, repo);
 	exit_on_error(error);
 
@@ -71,6 +80,7 @@ int main(int argc, char **argv)
 		const char *msg = git_commit_message(commit);
 		printf("oid: %s | message: %s\n", oid_str, msg);
 	}
+#endif
 
 	git_diff *diff = NULL;
 	error = git_diff_index_to_workdir(&diff, repo, NULL, NULL);

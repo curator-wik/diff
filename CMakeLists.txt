@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 include(ExternalProject)
 cmake_minimum_required (VERSION 2.8)
 project (php_git)
@@ -8,6 +9,7 @@ set(php_git_VERSION_MINOR 1)
 
 set(GLOBAL_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 set(CMAKE_INSTALL_PREFIX ${PROJECT_BINARY_DIR}/install)
+set (CMAKE_C_FLAGS -fPIC)
 
 find_package(PkgConfig)
 

@@ -82,6 +82,9 @@ int main(int argc, char **argv)
 	}
 #endif
 
-
+	dmp_diff *dmp_df = NULL;
+	dmp_diff_from_strs(&dmp_df, NULL, "This is a test", "This is another test");
+	dmp_diff_print_raw(stdout, dmp_df);
+	dmp_diff_free(dmp_df);
 	return 0;
 }

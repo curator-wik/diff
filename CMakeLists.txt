@@ -1,7 +1,7 @@
 include(ExternalProject)
 cmake_minimum_required (VERSION 2.8)
 project (php_git)
-
+#set(CMAKE_VERBOSE_MAKEFILE on)
 set(CMAKE_BUILD_TYPE Debug)
 set(php_git_VERSION_MAJOR 0)
 set(php_git_VERSION_MINOR 1)
@@ -29,8 +29,8 @@ ExternalProject_Add(
 	SOURCE_DIR "${CMAKE_SOURCE_DIR}/depends/libdmp"
 
 	PATCH_COMMAND ""
-	CONFIGURE_COMMAND ""
-	BUILD_COMMAND make -f ${CMAKE_SOURCE_DIR}/depends/libdmp/Makefile
+	CONFIGURE_COMMAND cmake -E copy_directory ${CMAKE_SOURCE_DIR}/depends/libdmp .
+	BUILD_COMMAND make
 	UPDATE_COMMAND ""
 	INSTALL_COMMAND ""
 	TEST_COMMAND ""
@@ -40,7 +40,7 @@ ExternalProject_Add(
 add_library(dmp STATIC IMPORTED)
 
 set_target_properties(dmp PROPERTIES
-	IMPORTED_LOCATION ./libdmp-build-prefix/src/libdmp-build-build/libdmp.a)
+	IMPORTED_LOCATION libdmp-build-prefix/src/libdmp-build-build/libdmp.a)
 
 add_executable(main main.c)
 add_dependencies(main libdmp-build dmp)

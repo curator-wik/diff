@@ -24,7 +24,8 @@ endif()
 ExternalProject_Add(
 	libdmp-build
 
-	GIT_REPOSITORY "https://github.com/arrbee/diff-match-patch-c.git"
+	#GIT_REPOSITORY "https://github.com/arrbee/diff-match-patch-c.git"
+	GIT_REPOSITORY "https://github.com/udif/diff-match-patch-c.git"
 
 	SOURCE_DIR "${CMAKE_SOURCE_DIR}/depends/libdmp"
 

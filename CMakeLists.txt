@@ -24,8 +24,7 @@ endif()
 ExternalProject_Add(
 	libdmp-build
 
-	#GIT_REPOSITORY "https://github.com/arrbee/diff-match-patch-c.git"
-	GIT_REPOSITORY "https://github.com/udif/diff-match-patch-c.git"
+	GIT_REPOSITORY "https://github.com/curator-wik/diff-match-patch-c.git"
 
 	SOURCE_DIR "${CMAKE_SOURCE_DIR}/depends/libdmp"
 
@@ -54,5 +53,5 @@ add_custom_target(clean-all
 	COMMAND rm -rf depends
 	COMMAND rm -r libdmp-build-prefix
 	COMMAND rm CMakeCache.txt cmake_install.cmake
-	COMMAND rm -r bin
+	COMMAND rm main 
 )

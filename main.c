@@ -88,7 +88,6 @@ int main(int argc, char **argv)
 	error = git_diff_print(diff, GIT_DIFF_FORMAT_PATCH, diff_output, NULL);
 	exit_on_error(error);
 
-
 	struct oid_data od = {0};
 	error = git_diff_foreach(diff, git_df_cb, NULL, NULL, NULL, &od);
 	exit_on_error(error);
@@ -110,29 +109,10 @@ int main(int argc, char **argv)
 
 	char *old_file = strdup(git_blob_rawcontent(old_blob));
 	char *new_file = strdup(git_blob_rawcontent(new_blob));
-#if 0
-	error = git_revwalk_new(&walker, repo);
-	exit_on_error(error);
-
-	error = git_revwalk_push_head(walker);
-	exit_on_error(error);
-
-	while(!git_revwalk_next(&oid, walker)) {
-		error = git_commit_lookup(&commit, repo, &oid);
-		exit_on_error(error);
-		git_oid_tostr((char *)&oid_str, sizeof(oid_str), &oid);
-		const char *msg = git_commit_message(commit);
-		printf("oid: %s | message: %s\n", oid_str, msg);
-	}
-#endif
 
 	dmp_diff *dmp_df = NULL;
-	dmp_options opts;
-	dmp_options_init(&opts);
-	opts.match_threshold = 1;
-	opts.patch_margin = 8;
-	dmp_diff_from_strs(&dmp_df, &opts, old_file, new_file);
-	dmp_diff_print_raw(stdout, dmp_df);
+	dmp_diff_from_strs(&dmp_df, NULL, old_file, new_file);
+	dmp_diff_print_patch(stdout, dmp_df);
 	dmp_diff_free(dmp_df);
 	return 0;
 }

@@ -1,10 +1,17 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+#include <getopt.h>
 #include <git2.h>
 #include <dmp.h>
 
 #define exit_on_error(x) _exit_on_error(x, __FUNCTION__, __LINE__)
 #define ONE_TIME fprintf(stdout, "%s-%d\n", __FUNCTION__, __LINE__); fflush(stdout);
+
+static struct option _long_options[] = {
+	{"help", no_argument, 0, 'h'},
+	{0, 0, 0, 0}
+};
 
 static void _exit_on_error(int error, const char *func, const int line)
 {
@@ -69,6 +76,22 @@ int git_df_cb(const git_diff_delta *d, float progress, void *payload)
 
 int main(int argc, char **argv)
 {
+	int c;
+	while(true) {
+		int option_index = 0;
+		c = getopt_long(argc, argv, "h", _long_options, &option_index);
+		if(c == -1) {
+			break;
+		}
+		switch(c) {
+			case 'h':
+				printf("help goes here\n");
+				exit(0);
+			default:
+				break;
+		}
+	}
+
 	git_libgit2_init();
 
 	git_oid oid;

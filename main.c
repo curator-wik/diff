@@ -297,6 +297,8 @@ int main(int argc, char **argv)
 		dmp_diff_free(dmp_df);
 		fclose(out);
 		free(write_file);
+		free(old_file);
+		free(new_file);
 
 	}
 

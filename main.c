@@ -23,7 +23,7 @@ static struct option _long_options[] = {
 };
 
 static struct dm_oids _diff_data = {0};
-//static struct dm_oid_data *_diff_data = NULL; 
+//static struct dm_oid_data *_diff_data = NULL;
 
 static void _process_repo_path(struct dm_options *options, char *optarg)
 {
@@ -264,7 +264,7 @@ int main(int argc, char **argv)
 		if(error) {
 			no_new = true;
 		}
-#if 0		
+#if 0
 		if(error) {
 			git_oid work_oid;
 			//error = git_blob_create_fromworkdir(&work_oid, repo, "main.c");
@@ -303,7 +303,7 @@ int main(int argc, char **argv)
 #if 0
 	//printf("old: %s\n", od.old);
 	//printf("new: %s\n", od.new);
-	
+
 	for(idx = 0; idx < _diff_data.length; idx++) {
 		git_blob *old_blob, *new_blob;
 		error = git_blob_lookup(&old_blob, repo, &od.old_oid);

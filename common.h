@@ -30,6 +30,7 @@ struct dm_options {
 	char *log_filename;
 	char *repo_path;
 	char *commits;
+	char *output_dir;
 };
 
 #endif

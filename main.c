@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <getopt.h>
 #include <unistd.h>
+#include <errno.h>
+#include <sys/stat.h>
 #include <git2.h>
 #include <dmp.h>
 
@@ -17,6 +19,7 @@ static struct option _long_options[] = {
 	{"help", no_argument, 0, 'h'},
 	{"repository", required_argument, 0, 'r'},
 	{"commits", required_argument, 0, 'c'},
+	{"output-dir", required_argument, 0, 'o'},
 	{"dry-run", no_argument, 0, 'd'},
 	{"log", optional_argument, 0, 'l'},
 	{0, 0, 0, 0}
@@ -24,6 +27,75 @@ static struct option _long_options[] = {
 
 static struct dm_oids _diff_data = {0};
 //static struct dm_oid_data *_diff_data = NULL;
+
+static char **_explode(int *argc, char *str, char *exploder)
+{
+	int count = 0;
+	char **argv;
+	char *temp_args = strdup(str);
+	char *new_temp_args = temp_args;
+	char *temp;
+
+	argv = calloc(1, sizeof(char *));
+	while((temp = strtok(new_temp_args, exploder))) {
+		new_temp_args = NULL;
+		argv[count] = strdup(temp);
+		count++;
+		argv = realloc(argv, (count + 1) * sizeof(char *));
+	}
+
+	free(temp_args);
+	*argc = count;
+
+	return argv;
+}
+
+static void _free_explode(int argc, char **argv)
+{
+	int ix;
+	for(ix = 0; ix < argc; ix++) {
+		free(argv[ix]);
+	}
+	free(argv);
+}
+
+static void _prepare_output_directory(struct dm_options *options)
+{
+	struct stat s;
+	int ret = stat(options->output_dir, &s);
+	if(ret) {
+		if(errno == ENOENT) {
+			mkdir(options->output_dir, 0700);
+			char *d;
+			asprintf(&d, "%s/files", options->output_dir);
+			mkdir(d, 0700);
+			asprintf(&d, "%s/patch_files", options->output_dir);
+			mkdir(d, 0700);
+			//fprintf(stderr, "ENOENT\n");
+		} else {
+			fprintf(stderr, "%s\n", strerror(errno));
+			abort();
+		}
+	}
+}
+
+static void _prepare_file_write(char *full_filename)
+{
+	int ix;
+	for(ix = strlen(full_filename); ix > 0; ix--) {
+		if(full_filename[ix] == '/') {
+			break;
+		}
+	}
+
+	char *temp = calloc(1, ix + 1);
+	memcpy(temp, full_filename, ix);
+	char *cmd;
+	asprintf(&cmd, "mkdir -p '%s'", temp);
+	system(cmd);
+	free(temp);
+	free(cmd);
+}
 
 static void _process_repo_path(struct dm_options *options, char *optarg)
 {
@@ -36,37 +108,6 @@ static void _process_repo_path(struct dm_options *options, char *optarg)
 	return;
 }
 
-static char **_explode(int *argc, char *str, char *exploder)
-{
-  int count = 0;
-  char **argv;
-  char *temp_args = strdup(str);
-  char *new_temp_args = temp_args;
-  char *temp;
-
-  argv = calloc(1, sizeof(char *));
-  while((temp = strtok(new_temp_args, exploder))) {
-    new_temp_args = NULL;
-    argv[count] = strdup(temp);
-    count++;
-    argv = realloc(argv, (count + 1) * sizeof(char *));
-  }
-
-  free(temp_args);
-  *argc = count;
-
-  return argv;
-}
-
-static void _free_explode(int argc, char **argv)
-{
-  int ix;
-  for(ix = 0; ix < argc; ix++) {
-    free(argv[ix]);
-  }
-  free(argv);
-}
-
 static void _print_help(int argc, char **argv)
 {
 	if(!argc) {
@@ -76,8 +117,10 @@ static void _print_help(int argc, char **argv)
 	printf("Optional Arguments:\n");
 	printf("-r, --repository <dir>: Directory of git repository\n");
 	printf("-c, --commits <commit ids>: Commit id range to use for diff\n");
-	printf("-d, --dry-run: don't write to patch files\n");
-	printf("-l, --log[=file]: log everything to a file, optionally provide filename\n");
+	printf("-o, --output-dir <dir>: write patches/files to specified directory. defaults to ./%s_output\n",
+	    argv[0]);
+	printf("NOT IMPLEMENTED YET: -d, --dry-run: don't write to patch files\n");
+	printf("NOT IMPLEMENTED YET: -l, --log[=file]: log everything to a file, optionally provide filename\n");
 	return;
 }
 
@@ -158,9 +201,10 @@ int main(int argc, char **argv)
 {
 	int c;
 	struct dm_options options = {0};
+	asprintf(&options.output_dir, "./%s_output", argv[0]);
 	while(true) {
 		int option_index = 0;
-		c = getopt_long(argc, argv, "hd:l::r:c:", _long_options, &option_index);
+		c = getopt_long(argc, argv, "hd:l::r:c:o:", _long_options, &option_index);
 		if(c == -1) {
 			break;
 		}
@@ -183,6 +227,10 @@ int main(int argc, char **argv)
 			case 'c':
 				options.commits = strdup(optarg);
 				break;
+			case 'o':
+				free(options.output_dir);
+				options.output_dir = strdup(optarg);
+				break;
 			case '?':
 				_print_help(argc, argv);
 				return 1;
@@ -197,6 +245,9 @@ int main(int argc, char **argv)
 		printf("Error: commit range is required\n");
 		return ERROR;
 	}
+
+	_prepare_output_directory(&options);
+
 	git_libgit2_init();
 
 	git_oid oid;
@@ -222,6 +273,8 @@ int main(int argc, char **argv)
 	exit_on_error(error);
 	error = git_oid_fromstr(&cmt2, commit_ids[1]);
 	exit_on_error(error);
+
+	_free_explode(2, commit_ids);
 
 	error = git_commit_lookup(&gcmt1, repo, &cmt1);
 	exit_on_error(error);
@@ -287,14 +340,24 @@ int main(int argc, char **argv)
 		}
 
 		char *write_file;
-		asprintf(&write_file, "%s/%s.patch", options.repo_path,
-		    _diff_data.data[idx].new_filename);
+		if(no_old) {
+			asprintf(&write_file, "%s/files/%s", options.output_dir,
+			    _diff_data.data[idx].new_filename);
+		} else {
+			asprintf(&write_file, "%s/patch_files/%s.patch", options.output_dir,
+			    _diff_data.data[idx].new_filename);
+		}
+		_prepare_file_write(write_file);
 		FILE *out = fopen(write_file, "w");
 
-		dmp_diff *dmp_df = NULL;
-		dmp_diff_from_strs(&dmp_df, NULL, old_file, new_file);
-		dmp_diff_print_patch(out, dmp_df);
-		dmp_diff_free(dmp_df);
+		if(no_old) {
+			fprintf(out, "%s", new_file);
+		} else {
+			dmp_diff *dmp_df = NULL;
+			dmp_diff_from_strs(&dmp_df, NULL, old_file, new_file);
+			dmp_diff_print_patch(out, dmp_df);
+			dmp_diff_free(dmp_df);
+		}
 		fclose(out);
 		free(write_file);
 		free(old_file);
